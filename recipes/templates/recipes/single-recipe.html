@@ -1,0 +1,97 @@
+{% extends 'main.html' %}
+
+{% block content %}
+
+<main class="singleProject my-md">
+    <div class="container">
+      <div class="layout">
+        <div class="column column--1of3">
+          <h3 class="singleProject__subtitle">Tags</h3>
+          <div class="singleProject__toolStack">
+            {% for tag in recipe.tags.all %}
+            <span class="tag tag--pill tag--sub tag--lg">
+              <small>{{tag}}</small>
+            </span>
+            {% endfor %}
+    
+    
+          </div>
+        </div>
+        <div class="column column--2of3">
+          <img class="singleProject__preview" src="{{ recipe.featured_image.url }}" alt="portfolio thumbnail" />
+          <a  class="singleProject__developer">By {{recipe.owner}}</a>
+          <h2 class="singleProject__title">{{recipe.title}}</h2>
+          <h3 class="singleProject__subtitle">About the Recipe</h3>
+          <div class="singleProject__info">
+            {{recipe.description|safe}}
+            <br />
+            <h2>Preparation Time:</h2>
+            <p>{{recipe.preparation_time}} minutes</p>
+            <br/>
+            {{recipe.ingredients|safe}}
+            <br/>
+            <br/>
+            {{recipe.recipe|safe}}
+            <br/>
+            {% if recipe.youtube_link %}
+            <a class="singleProject__liveLink" href="{{recipe.youtube_link}}" target="_blank"><i class="im im-external-link"></i>Youtube Video
+            </a>
+            {% endif %}
+        
+          </div>
+
+          <div class="comments">
+            <h3 class="singleProject__subtitle">Feedback</h3>
+            <h5 class="project--rating">
+                {{recipe.vote_ratio}}% Positive Feedback ({{recipe.vote_total}}
+                Vote{{recipe.vote_total|pluralize:"s"}})
+            </h5>
+
+            {% if request.user.profile.id in recipe.reviewers %}
+            <p>You have already submitted your review for this Recipe</p>
+
+            {% elif request.user.profile == recipe.owner %}
+            <p>You cannot review your own work</p>
+
+            {% elif request.user.is_authenticated %}
+            <form class="form" action="{% url 'recipe' recipe.id %}" method="POST">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="form__field">
+                    <label for="formInput#textarea">{{field.label}}</label>
+                    {{field}}
+                </div>
+                {% endfor %}
+                <input class="btn btn--sub btn--lg" type="submit" value="Add Review" />
+            </form>
+            {% else %}
+            <a href="{% url 'login' %}?next={{request.path}}">Please login to leave a review</a>
+            {% endif %}
+
+            <div class="commentList">
+                {% for review in recipe.review_set.all %}
+                {% if review.body %}
+                <div class="comment">
+                    <a >
+                        <img class="avatar avatar--md" src="{{review.owner.profile_image.url}}" alt="user" />
+                    </a>
+
+
+                    <div class="comment__details">
+                        <a
+                            class="comment__author">{{review.owner.name}}</a>
+                        <p class="comment__info">{{review.body|linebreaksbr}}</p>
+                    </div>
+
+                </div>
+                {% endif %}
+                {% endfor %}
+
+            </div>
+            </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </main>
+{% endblock%}
